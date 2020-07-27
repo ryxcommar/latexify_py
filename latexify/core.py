@@ -3,28 +3,32 @@
 import ast
 import math
 import inspect
-from typing import Callable
 
 
 class LatexifyVisitor(ast.NodeVisitor):
 
-  def __init__(self, math_symbol=True):
+  def __init__(self, math_symbol):
     self.math_symbol = math_symbol
     super(ast.NodeVisitor).__init__()
 
   def _parse_math_symbols(self, val: str) -> str:
+    if not self.math_symbol:
+      return val
     greek_and_hebrew = [
         'aleph', 'alpha', 'beta', 'beth', 'chi', 'daleth',
-        'delta', 'digamma', 'epsilon', 'eta', 'gamma', 'gimel',
+        'delta', 'digamma', 'epsilon', 'eta', 'gimel',
         'iota', 'kappa', 'lambda', 'mu', 'nu', 'omega', 'omega',
         'phi', 'pi', 'psi', 'rho', 'sigma', 'tau', 'theta',
         'upsilon', 'varepsilon', 'varkappa', 'varphi', 'varpi', 'varrho',
-        'varsigma', 'vartheta', 'xi', 'zeta'
+        'varsigma', 'vartheta', 'xi', 'zeta', 'Delta', 'Gamma',
+        'Lambda', 'Omega', 'Phi', 'Pi', 'Sigma', 'Theta',
+        'Upsilon', 'Xi',
+        # 'gamma' <-- might break with `math.gamma`; leaving out for now.
     ]
-    if self.math_symbol and val.lower() in greek_and_hebrew:
+    if val in greek_and_hebrew:
       return '{\\' + val + '}'
     else:
-      return '{' + val + '}'
+      return val
 
   def generic_visit(self, node):
     return str(node)
@@ -213,7 +217,7 @@ def with_latex(*args, math_symbol=True):
       """
       return self._str
 
-  if len(args) == 1 and isinstance(args[0], Callable):
+  if len(args) == 1 and callable(args[0]):
     return _LatexifiedFunction(args[0])
   else:
     return lambda fn: _LatexifiedFunction(fn)
